@@ -3,9 +3,15 @@
 # the Atlas cluster existing, so Terraform runs this concurrently with Atlas
 # cluster creation (terraform_data.bootstrap_app only depends on the EC2
 # instance/EIP, not on any mongodbatlas_* resource). This is where the slow,
-# Mongo-independent steps (package installs, repo clone, DataGen data
-# generation, memex build) live, so they overlap with the ~10-12 minute
-# Atlas cluster provisioning time instead of running after it.
+# Mongo-independent steps (package installs, DataGen data generation, memex
+# build) live, so they overlap with the ~10-12 minute Atlas cluster
+# provisioning time instead of running after it.
+#
+# APP_DIR's contents are uploaded here by provision.tf's "file" provisioner
+# (from local.app_source_dir on the machine running terraform) BEFORE this
+# script runs - the app lives in a private repo, not a public one this
+# script can git clone, so it arrives pre-staged instead. This script does
+# not fetch or update it.
 #
 # Idempotent by design: every step either checks-before-acting or is safe to
 # repeat, so re-running this (e.g. after editing it and re-applying) never
@@ -13,19 +19,24 @@
 # expensive work (DataGen generation in particular).
 set -euxo pipefail
 
-REPO_URL="https://github.com/johnlpage/ListTest"
 APP_DIR="$HOME/ListTest"
 LISTINGS_DIR="$HOME"
 LISTINGS_PREFIX="listings"
 NUM_FILES=8
 DOCS_PER_FILE=1000000
 
+# --- Sanity-check the app source was actually uploaded before we try to use it ---
+if [ ! -d "$APP_DIR/DataGen" ] || [ ! -d "$APP_DIR/memex" ]; then
+  echo "ERROR: $APP_DIR is missing DataGen/ and/or memex/ - the file provisioner" >&2
+  echo "in provision.tf should have uploaded local.app_source_dir here before" >&2
+  echo "bootstrap.sh ran. Check that app_source_dir (terraform/app-src by" >&2
+  echo "default - see terraform/app-src/README.md) points at a real checkout." >&2
+  exit 1
+fi
+
 # --- Ensure Java is available (defensive - cloud-init should have installed it already) ---
 command -v java >/dev/null 2>&1 || sudo dnf install -y java-21-amazon-corretto-devel
 java -version
-
-# --- Ensure git is available ---
-command -v git >/dev/null 2>&1 || sudo dnf install -y git
 
 # --- Ensure Maven is available ---
 command -v mvn >/dev/null 2>&1 || sudo dnf install -y maven
@@ -44,13 +55,6 @@ REPO
   sudo dnf install -y mongodb-mongosh
 fi
 mongosh --version
-
-# --- Clone or update the repo (idempotent: clone once, pull thereafter) ---
-if [ -d "$APP_DIR/.git" ]; then
-  git -C "$APP_DIR" pull
-else
-  git clone "$REPO_URL" "$APP_DIR"
-fi
 
 # --- Generate sample data via DataGen (skip if already generated - this is
 #     the ~15 minute step this script exists to run in parallel with Atlas).
@@ -126,4 +130,4 @@ fi
 # Safe to re-run: Maven produces the same jar given the same source.
 mvn -f "$APP_DIR/memex/pom.xml" -q -Dmaven.test.skip=true package
 
-echo "bootstrap.sh complete: repo cloned/updated, ${LISTINGS_PREFIX}_0.json .. ${LISTINGS_PREFIX}_$((NUM_FILES - 1)).json ready, memex jar built."
+echo "bootstrap.sh complete: app source in place, ${LISTINGS_PREFIX}_0.json .. ${LISTINGS_PREFIX}_$((NUM_FILES - 1)).json ready, memex jar built."

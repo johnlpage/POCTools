@@ -8,7 +8,8 @@
 #      POST /api/listings?futz=true, twice, timing the whole pass.
 #   3. Generates a fresh 10,000-query Atlas Search pool and replays it with
 #      32 concurrent threads via SearchPerfTest/run_queries.sh (already
-#      present on the box via bootstrap.sh's git clone of the app repo).
+#      present on the box via provision.tf's file-provisioner upload of
+#      local.app_source_dir in terraform_data.bootstrap_app).
 #
 # This can take a long time (bulk-loading millions of documents plus a
 # 10,000-request search load test), hence the generous connection timeout
