@@ -1,0 +1,26 @@
+# Copy this file to terraform.tfvars and fill in real values.
+# terraform.tfvars is gitignored - never commit real secrets/IDs here.
+
+# NOTE: terraform.tfvars takes precedence over TF_VAR_* environment
+# variables. Do NOT set atlas_project_id or db_password here if you're also
+# exporting them as env vars - the value in this file would silently win.
+# Set them instead via:
+#   export TF_VAR_atlas_project_id="..."
+#   export TF_VAR_db_password="$(openssl rand -base64 24)"
+
+# Your current public IP in CIDR form, e.g. 203.0.113.10/32
+ssh_admin_cidr = "REPLACE_WITH_YOUR_IP/32"
+
+# Optional overrides (defaults shown):
+# aws_region           = "us-east-1"
+# atlas_region_name    = "US_EAST_1"
+# atlas_cluster_name   = "proplist-cluster"
+# atlas_instance_size  = "M30"
+# num_shards           = 1
+# atlas_disk_size_gb   = 10
+# atlas_backup_enabled = true
+# db_username          = "propListApp"
+# db_name              = "proplist"
+# ec2_instance_type    = "c6i.xlarge"
+# key_pair_name        = "proplist-ec2-key"
+# java_version         = "21"

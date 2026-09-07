@@ -1,0 +1,3 @@
+queries/*.json
+results/*.csv
+__pycache__/
