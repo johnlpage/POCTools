@@ -100,7 +100,7 @@ variable "java_version" {
 }
 
 variable "app_source_dir" {
-  description = "Local path (on the machine running terraform) to the application source tree to upload to the EC2 instance - must contain DataGen/, memex/ and SearchPerfTest/ at its root. The app code lives in a private repo, not a public one Terraform can clone, so it's uploaded directly instead. Defaults to the app-src/ placeholder directory next to this file; either check the app out there or point this at an existing checkout (see terraform/app-src/README.md)."
+  description = "Local path (on the machine running terraform) to the application source tree to upload to the EC2 instance, in place of a git clone (the app lives in a private repo, not a public one Terraform can clone). For this example, bootstrap.sh/perf-test.sh expect DataGen/, memex/ and SearchPerfTest/ at its root - adjust those scripts if your app's layout differs. Defaults to the app-src/ placeholder directory next to this file; either check your app out there or point this at an existing checkout (see terraform/app-src/README.md)."
   type        = string
   default     = null
 }

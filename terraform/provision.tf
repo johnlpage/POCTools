@@ -59,13 +59,14 @@ resource "terraform_data" "bootstrap_app" {
     inline = ["cloud-init status --wait"]
   }
 
-  # Upload the app source tree in place of the old git clone. Trailing
-  # slash on the source means "upload the contents of this directory", so
-  # local.app_source_dir's DataGen/, memex/, SearchPerfTest/ etc. land
-  # directly under $HOME/ListTest on the instance.
+  # Upload the app source tree in place of a git clone (the app lives in a
+  # private repo, not a public one Terraform can clone). Trailing slash on
+  # the source means "upload the contents of this directory", so whatever
+  # local.app_source_dir contains (DataGen/, memex/, SearchPerfTest/ etc.
+  # for this example) lands directly under $HOME/app on the instance.
   provisioner "file" {
     source      = "${local.app_source_dir}/"
-    destination = "/home/ec2-user/ListTest"
+    destination = "/home/ec2-user/app"
   }
 
   provisioner "file" {

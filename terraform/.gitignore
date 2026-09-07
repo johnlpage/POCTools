@@ -31,7 +31,7 @@ terraform.rc
 *.key
 
 # Application source uploaded to the EC2 instance by provision.tf's file
-# provisioner (private ListTest app repo - not part of this public repo).
-# Check it out here (or point app_source_dir elsewhere) before applying.
+# provisioner (a private app repo - not part of this public repo). Check
+# it out here (or point app_source_dir elsewhere) before applying.
 app-src/*
 !app-src/README.md

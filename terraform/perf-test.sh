@@ -22,7 +22,7 @@
 # against the already-running instance (same pattern as remote-setup.sh).
 set -euxo pipefail
 
-APP_DIR="$HOME/ListTest"
+APP_DIR="$HOME/app"
 LISTINGS_DIR="$HOME"
 RESULTS_DIR="$HOME/perftest-results"
 mkdir -p "$RESULTS_DIR"

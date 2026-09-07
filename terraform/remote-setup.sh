@@ -8,7 +8,7 @@
 # re-run it against the already-running instance.
 set -euxo pipefail
 
-APP_DIR="$HOME/ListTest"
+APP_DIR="$HOME/app"
 
 MEMEX_JAR=$(ls "$APP_DIR"/memex/target/memex-*.jar | grep -v original | head -1)
 

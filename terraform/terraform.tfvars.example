@@ -11,11 +11,11 @@
 # Your current public IP in CIDR form, e.g. 203.0.113.10/32
 ssh_admin_cidr = "REPLACE_WITH_YOUR_IP/32"
 
-# Local path to your checkout of the (private) ListTest app source - must
-# contain DataGen/, memex/, SearchPerfTest/ at its root. Uploaded to the EC2
-# instance in place of a git clone. Defaults to terraform/app-src if unset -
-# see terraform/app-src/README.md.
-# app_source_dir = "/Users/you/Documents/Source/ListTest"
+# Local path to your app's source checkout (a private repo, not one
+# Terraform can clone). Uploaded to the EC2 instance in place of a git
+# clone. Defaults to terraform/app-src if unset - see
+# terraform/app-src/README.md.
+# app_source_dir = "/Users/you/Documents/Source/your-app"
 
 # Optional overrides (defaults shown):
 # aws_region           = "us-east-1"

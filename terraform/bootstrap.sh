@@ -19,7 +19,7 @@
 # expensive work (DataGen generation in particular).
 set -euxo pipefail
 
-APP_DIR="$HOME/ListTest"
+APP_DIR="$HOME/app"
 LISTINGS_DIR="$HOME"
 LISTINGS_PREFIX="listings"
 NUM_FILES=8
