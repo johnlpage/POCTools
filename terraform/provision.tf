@@ -59,6 +59,15 @@ resource "terraform_data" "bootstrap_app" {
     inline = ["cloud-init status --wait"]
   }
 
+  # Terraform's SSH "file" provisioner does not reliably create the
+  # destination as a directory when uploading a directory's contents (source
+  # with a trailing slash) - it needs to already exist. Without this,
+  # bootstrap.sh's own sanity check ([ ! -d "$APP_DIR/DataGen" ]) fails on a
+  # fresh instance because the upload silently has nowhere valid to land.
+  provisioner "remote-exec" {
+    inline = ["mkdir -p /home/ec2-user/app"]
+  }
+
   # Upload the app source tree in place of a git clone (the app lives in a
   # private repo, not a public one Terraform can clone). Trailing slash on
   # the source means "upload the contents of this directory", so whatever

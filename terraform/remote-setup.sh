@@ -24,7 +24,12 @@ sleep 1
 # Start memex in the background, pointed at the Atlas cluster.
 # It is left running after this script exits so you can keep hitting it
 # manually via curl over SSH.
+# A packaged jar's application.properties may hardcode a database name for
+# local dev, which takes precedence over the database name embedded in the
+# Mongo URI's path - export both explicitly so the intended Atlas database
+# is actually used.
 export SPRING_DATA_MONGODB_URI="$MONGO_URI"
+export SPRING_DATA_MONGODB_DATABASE="$MONGO_DB_NAME"
 nohup java -jar "$MEMEX_JAR" > "$HOME/memex.log" 2>&1 &
 MEMEX_PID=$!
 echo "memex started with PID $MEMEX_PID, logging to ~/memex.log (left running after this script exits)"

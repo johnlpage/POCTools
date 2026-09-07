@@ -97,6 +97,11 @@ log "--- Phase 3: SearchPerfTest - 10,000 queries, 32 parallel ---"
 cd "$APP_DIR/SearchPerfTest"
 python3 generate_queries.py --count 10000 2>&1 | tee -a "$SUMMARY"
 
+# The file provisioner that uploaded app_source_dir doesn't preserve
+# executable permission bits, so run_queries.sh needs its +x restored here
+# before it can be invoked directly.
+chmod +x run_queries.sh
+
 SEARCH_RESULTS_CSV="$RESULTS_DIR/search_perf_${TIMESTAMP}.csv"
 ./run_queries.sh \
   http://localhost:8080/api/listings/search \

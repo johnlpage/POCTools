@@ -25,7 +25,7 @@ It doesn't hardcode a field list. `generate_queries.py`:
    columns nested under that path, since the CSVs are the real source of the
    generated document shape.
 
-2. **Samples realistic values straight from `DataGen/Zillow/*.csv.gz`** - the
+2. **Samples realistic values straight from `DataGen/Listing/*.csv.gz`** - the
    exact same probability-weighted generator input files used to produce the
    16M documents loaded into Atlas - including parsing DataGen's macro
    tokens (`@INTEGER(min,max)`, `@DOUBLE(a,b)`, `@DATE(start,end)`,

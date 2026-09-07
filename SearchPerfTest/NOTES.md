@@ -36,11 +36,11 @@ commit 786f91f) - use these exact paths when generating query bodies:
 - `price`, `zestimate`, `rentZestimate`, `lastSoldPrice` (number)
 - `bedrooms`, `bathrooms`, `livingArea`, `lotSize`, `yearBuilt` (number)
 - `homeType`, `propertyTypeDimension`, `homeStatus`, `listingTypeDimension`, `tag` (string)
-- `daysOnZillow` (number), `dateSold` (date)
+- `daysOnMarket` (number), `dateSold` (date)
 - `hoa_details` (document, dynamic:true -> `hoa_details.hoa_fee_value` (number),
   `hoa_details.hoa_fee_period` (string), `hoa_details.has_hoa` (boolean, unreliable to filter))
 - `description` (string, full-text)
-- `zpid` (number)
+- `listingRef` (number)
 - Index name: `"default"`, `dynamic: false` overall.
 
 ## Chosen approach: curl + xargs (not ab/hey/wrk/vegeta)
@@ -53,7 +53,7 @@ commit 786f91f) - use these exact paths when generating query bodies:
 ## Planned files under SearchPerfTest/ (not yet created)
 - `generate_queries.py` - generates a pool of N distinct realistic query
   JSON files (full request envelope) into `queries/`, sampling field values
-  from actual DataGen CSVs (`DataGen/Zillow/*.csv.gz`) for realistic
+  from actual DataGen CSVs (`DataGen/Listing/*.csv.gz`) for realistic
   distributions (state/homeType/homeStatus/tag/county frequencies), numeric
   ranges informed by sampling `DataGen/listings.json`, and free-text
   keywords for `description` full-text queries. Mix of query shapes: pure
@@ -80,7 +80,7 @@ this note was written - re-confirm before implementing):
   Atlas Search perf.
 
 ## DataGen root-level field duplication fix (commit 7b22001)
-`DataGen/Zillow/*.csv.gz` previously generated some fields at BOTH the
+`DataGen/Listing/*.csv.gz` previously generated some fields at BOTH the
 document root AND nested inside a grouping object with identical/related
 values - fixed by keeping only one canonical copy of each:
 - `address.city`/`address.state`/`address.zipcode`/`address.streetAddress`
@@ -96,12 +96,12 @@ values - fixed by keeping only one canonical copy of each:
   `bedrooms_bedrooms.csv.gz`->`bedrooms.csv.gz`, and
   `streetAddress_2.csv.gz`/`zipcode_2.csv.gz`/`bathrooms_2.csv.gz` deleted
   outright.
-- NOT touched: similar-looking per-field files inside `DataGen/Zillow/
-  homeValuation/comps/` and `DataGen/Zillow/nearbyHomes/` (e.g.
+- NOT touched: similar-looking per-field files inside `DataGen/Listing/
+  homeValuation/comps/` and `DataGen/Listing/nearbyHomes/` (e.g.
   `city_zipcode.csv.gz`, `state_mlsName.csv.gz`) - those define fields
   local to array-of-object sub-schemas, not root-document duplicates, so
   out of scope for this fix.
-- Verified via a fresh `java -jar DataGen-1.0.jar Zillow ...` run that the
+- Verified via a fresh `java -jar DataGen-1.0.jar Listing ...` run that the
   generated JSON now has no top-level city/state/zipcode/streetAddress and
   retains only top-level bedrooms/bathrooms.
 - Any query-generation logic for SearchPerfTest should assume this shape:
@@ -111,7 +111,7 @@ values - fixed by keeping only one canonical copy of each:
 
 ## configapi dropdowns repopulated from CSVs (commit bef02f8)
 `queryableFields.json` categorical dropdown lists were regenerated
-programmatically by reading the actual current `DataGen/Zillow/*.csv.gz`
+programmatically by reading the actual current `DataGen/Listing/*.csv.gz`
 files (not hand-typed) - full/complete value lists, ordered by real
 frequency:
 - `State=address.state`: full 48-state list (was a hand-picked top 10).
@@ -143,11 +143,11 @@ Built and tested end-to-end:
   the Java text block - NOT hardcoded), dynamic `hoa_details` sub-fields
   discovered via CSV column prefix match (found `has_hoa`, `hoa_fee_currency`,
   `hoa_fee_period`, `hoa_fee_value` - `has_hoa` auto-skipped as boolean).
-  Values sampled from `DataGen/Zillow/*.csv.gz`, with a `parse_cell()` macro
+  Values sampled from `DataGen/Listing/*.csv.gz`, with a `parse_cell()` macro
   parser handling DataGen's `@INTEGER(min,max)`, `@DOUBLE(a,b)`,
   `@DATE`/`@DATETIME(start,end)`, and `@ONEUP` tokens (confirmed these are
   real - e.g. `price.csv.gz` is `@INTEGER(0,45650400)`, `dateSold.csv.gz` is
-  `@DATETIME(...)`, `zpid.csv.gz`/`listingId.csv.gz` are `@ONEUP` - NOT
+  `@DATETIME(...)`, `listingRef.csv.gz`/`listingId.csv.gz` are `@ONEUP` - NOT
   discrete weighted lists like most other fields). `--explain` flag prints
   the full field discovery/inclusion/exclusion reasoning - this is the
   running answer to "how does it know which fields to test".

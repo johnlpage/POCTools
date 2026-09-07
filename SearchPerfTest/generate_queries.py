@@ -17,7 +17,7 @@ IMPORTANT - field discovery is NOT hardcoded here:
    shape.
 
 2. Realistic values for each field are sampled directly from the DataGen
-   generator's own input files (DataGen/Zillow/*.csv.gz) - the exact same
+   generator's own input files (DataGen/Listing/*.csv.gz) - the exact same
    probability-weighted CSVs used to generate the 16M documents loaded into
    Atlas - rather than any hand-typed/guessed value list. This includes
    parsing DataGen's special macro tokens (@INTEGER(min,max), @DOUBLE(a,b),
@@ -43,7 +43,7 @@ JAVA_INDEX_FILE = (
     REPO_ROOT
     / "memex/src/main/java/com/johnlpage/memex/Listing/service/ListingPreflightConfig.java"
 )
-ZILLOW_DIR = REPO_ROOT / "DataGen/Zillow"
+LISTING_DIR = REPO_ROOT / "DataGen/Listing"
 GRID_FIELDS_FILE = REPO_ROOT / "memex/src/main/resources/public/configapi/gridFields.json"
 
 # Words too common/short to make interesting free-text search terms.
@@ -111,7 +111,7 @@ def flatten_index_fields(mappings, csv_index, prefix="", explain=None):
 
 
 # ---------------------------------------------------------------------------
-# Step 2: build an index of every column across DataGen/Zillow/*.csv.gz
+# Step 2: build an index of every column across DataGen/Listing/*.csv.gz
 # (top-level files only - NOT the homeValuation/comps, nearbyHomes,
 # nearbyZipcodes subfolders, which define fields local to array-of-object
 # sub-schemas rather than root-document fields) mapping the exact dotted
@@ -121,7 +121,7 @@ def flatten_index_fields(mappings, csv_index, prefix="", explain=None):
 # ---------------------------------------------------------------------------
 def build_csv_index():
     index = {}
-    for path in sorted(ZILLOW_DIR.glob("*.csv.gz")):
+    for path in sorted(LISTING_DIR.glob("*.csv.gz")):
         with gzip.open(path, "rt", newline="") as f:
             reader = csv.DictReader(f)
             fieldnames = reader.fieldnames or []
@@ -232,7 +232,7 @@ class FieldSampler:
         if self.kind == "oneup":
             # @ONEUP fields are sequential counters at generation time, not a
             # weighted value list - approximate the plausible id space instead.
-            # bootstrap.sh runs 2 @ONEUP fields (listingId, zpid) per document,
+            # bootstrap.sh runs 2 @ONEUP fields (listingId, listingRef) per document,
             # each consuming one counter tick, so the id space is ~2x total docs.
             return rng.randint(1, max(2 * self.total_docs, 2))
         if self.kind in ("number_list", "string_list", "bool_list"):
@@ -290,7 +290,7 @@ def build_field_samplers(total_docs, explain):
         if not rows:
             explain.append(
                 f"  SKIP '{path}' (declared type: {declared_type}) - no matching "
-                f"column found in any DataGen/Zillow/*.csv.gz file, cannot "
+                f"column found in any DataGen/Listing/*.csv.gz file, cannot "
                 f"generate realistic values for it"
             )
             continue
@@ -461,7 +461,7 @@ def main():
     parser.add_argument("--out", type=Path, default=Path(__file__).resolve().parent / "queries",
                          help="Output directory for generated query JSON files")
     parser.add_argument("--total-docs", type=int, default=16_000_000,
-                         help="Approximate total documents in the collection (used to size the @ONEUP id sampling range for zpid)")
+                         help="Approximate total documents in the collection (used to size the @ONEUP id sampling range for listingRef)")
     parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducible query pools")
     parser.add_argument("--limit", type=int, default=200,
                          help="Value used for the 'limit' field in every generated query envelope")

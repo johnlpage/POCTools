@@ -62,21 +62,21 @@ mongosh --version
 #     output file of $DOCS_PER_FILE documents, so they are meant to be
 #     loaded in parallel (e.g. one mongoimport per file) rather than
 #     concatenated. Each instance is given a non-overlapping oneupStart
-#     (see DataGen/README.md) so the @ONEUP-derived listingId/zpid fields
+#     (see DataGen/README.md) so the @ONEUP-derived listingId/listingRef fields
 #     do not collide across files, and a distinct randomSeed so the
 #     instances don't all draw the same sequence of random field values.
 #
 #     ONEUP_STRIDE must be DOCS_PER_FILE times the number of @ONEUP fields
 #     that share the counter per document - currently 2 (listingId and
-#     zpid both use @ONEUP, see DataGen/Zillow/{listingId,zpid}.csv.gz),
+#     listingRef both use @ONEUP, see DataGen/Listing/{listingId,listingRef}.csv.gz),
 #     since generating DOCS_PER_FILE documents consumes 2 * DOCS_PER_FILE
 #     counter values, not DOCS_PER_FILE. Using a stride of just
 #     DOCS_PER_FILE here previously caused each file's range to overlap
-#     the next by 50%, producing duplicate listingId/zpid values (and
+#     the next by 50%, producing duplicate listingId/listingRef values (and
 #     resulting E11000 duplicate key errors on load) between adjacent
 #     files - e.g. file 0 consumed values 1..2000000 while file 1 started
 #     at 1000001, re-emitting values 1000001..2000000 that file 0 had
-#     already used. If a CSV file is added under Zillow/ that introduces
+#     already used. If a CSV file is added under Listing/ that introduces
 #     another @ONEUP field, this multiplier must go up accordingly.
 ONEUP_FIELDS_PER_DOC=2
 ONEUP_STRIDE=$((DOCS_PER_FILE * ONEUP_FIELDS_PER_DOC))
@@ -115,7 +115,7 @@ else
     OUT_FILE="$LISTINGS_DIR/${LISTINGS_PREFIX}_${i}.json"
     [ -f "$OUT_FILE" ] && continue
     ONEUP_START=$((i * ONEUP_STRIDE))
-    java -jar target/DataGen-1.0.jar Zillow "$DOCS_PER_FILE" "$OUT_FILE" 2000 "$ONEUP_START" "$i" &
+    java -jar target/DataGen-1.0.jar Listing "$DOCS_PER_FILE" "$OUT_FILE" 2000 "$ONEUP_START" "$i" &
     PIDS+=($!)
   done
   for pid in "${PIDS[@]}"; do
